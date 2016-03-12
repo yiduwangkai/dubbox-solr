@@ -6,3 +6,4 @@ note that we use fast json,but due to resteasy donot support to fast json, so we
 so if you want to use the fastjson, you can contact with us yiduwangkai@gmail.com
 on the other hand, we define transmit data protocol, now the code locate the transmitData package
 ok! thx
+recently we fix the cloudServerClient and optimize it

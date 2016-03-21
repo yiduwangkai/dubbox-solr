@@ -16,10 +16,10 @@
 package com.frank.search.solr.server.support;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
+import org.apache.solr.client.solrj.impl.*;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,13 +37,31 @@ public class HttpSolrClientFactoryBean extends HttpSolrClientFactory implements 
 		InitializingBean, DisposableBean {
 
 	private static final String SERVER_URL_SEPARATOR = ",";
+
+    //zk连接的URL
 	private String url;
+
+    //模式 CLOUD，k，LOADBALANCED
     private String mode;
+
+    //httpclient连接超时时间
 	private Integer timeout;
+
+    //zkClient连接超时时间
     private Integer zkClientTimeout;
+
+    //zk连接超时时间
     private Integer zkConnectTimeout;
+
+    //最大连接数
 	private Integer maxConnections;
+
+    //每个机器的最大连接数
+    private Integer maxConnectionsPerHost;
+
+    //collection的名称
     private String collection;
+
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -73,7 +91,15 @@ public class HttpSolrClientFactoryBean extends HttpSolrClientFactory implements 
 	}
 
     private void createCloudClient(){
-        CloudSolrClient cloudSolrClient = new CloudSolrClient(url);
+
+        ModifiableSolrParams params = new ModifiableSolrParams();
+        params.set(HttpClientUtil.PROP_MAX_CONNECTIONS, maxConnections);//1000
+        params.set(HttpClientUtil.PROP_MAX_CONNECTIONS_PER_HOST, maxConnectionsPerHost);//5000
+        params.set(HttpClientUtil.PROP_CONNECTION_TIMEOUT,timeout);
+        params.set(HttpClientUtil.PROP_SO_TIMEOUT,timeout);
+        HttpClient client = HttpClientUtil.createClient(params);
+        LBHttpSolrClient lbHttpSolrClient = new LBHttpSolrClient(client);
+        CloudSolrClient cloudSolrClient = new CloudSolrClient(url,lbHttpSolrClient);
         if (zkClientTimeout != null) {
             cloudSolrClient.setZkClientTimeout(zkClientTimeout.intValue());
         }
@@ -81,9 +107,11 @@ public class HttpSolrClientFactoryBean extends HttpSolrClientFactory implements 
             cloudSolrClient.setZkConnectTimeout(zkConnectTimeout.intValue());
         }
 
+
         if (StringUtils.isNoneBlank(collection)){
             cloudSolrClient.setDefaultCollection(collection);
         }
+        cloudSolrClient.connect();
         this.setSolrClient(cloudSolrClient);
     }
 
@@ -140,37 +168,25 @@ public class HttpSolrClientFactoryBean extends HttpSolrClientFactory implements 
 		this.maxConnections = maxConnections;
 	}
 
-    public String getMode() {
-        return mode;
+    public void setMaxConnectionsPerHost(Integer maxConnectionsPerHost) {
+        this.maxConnectionsPerHost = maxConnectionsPerHost;
     }
-
     public void setMode(String mode) {
         this.mode = mode;
-    }
-
-    public Integer getZkClientTimeout() {
-        return zkClientTimeout;
     }
 
     public void setZkClientTimeout(Integer zkClientTimeout) {
         this.zkClientTimeout = zkClientTimeout;
     }
 
-    public Integer getZkConnectTimeout() {
-        return zkConnectTimeout;
-    }
-
     public void setZkConnectTimeout(Integer zkConnectTimeout) {
         this.zkConnectTimeout = zkConnectTimeout;
-    }
-
-    public String getCollection() {
-        return collection;
     }
 
     public void setCollection(String collection) {
         this.collection = collection;
     }
+
 
     public enum OrginMode{
         CLOUD_MODE("CLOUD"),

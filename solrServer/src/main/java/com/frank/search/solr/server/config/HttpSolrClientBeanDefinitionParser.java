@@ -45,6 +45,7 @@ public class HttpSolrClientBeanDefinitionParser extends AbstractBeanDefinitionPa
 		builder.addPropertyValue("url", element.getAttribute("url"));
 		builder.addPropertyValue("timeout", element.getAttribute("timeout"));
 		builder.addPropertyValue("maxConnections", element.getAttribute("maxConnections"));
+		builder.addPropertyValue("maxConnectionsPerHost", element.getAttribute("maxConnectionsPerHost"));
 	}
 
 	private AbstractBeanDefinition getSourcedBeanDefinition(BeanDefinitionBuilder builder, Element source,

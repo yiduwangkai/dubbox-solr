@@ -22,7 +22,7 @@
         <netty.version>4.0.28.Final</netty.version>
         <mybatis.version>3.3.0</mybatis.version>
         <mybatis.spring.version>1.1.1</mybatis.spring.version>
-        <mysql.version>5.1.21</mysql.version>
+        <mysql.version>8.0.28</mysql.version>
         <druid.version>1.0.12</druid.version>
         <aspectj.version>1.7.1</aspectj.version>
         <jackson.version>1.9.11</jackson.version>
